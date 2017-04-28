@@ -67,7 +67,7 @@ bool ReadPNG(const std::string& data, int* xsize, int* ysize,
   std::istringstream memstream(data, std::ios::in | std::ios::binary);
   png_set_read_fn(png_ptr, static_cast<void*>(&memstream), [](png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead) {
     std::istringstream& memstream = *static_cast<std::istringstream*>(png_get_io_ptr(png_ptr));
-    
+
     memstream.read(reinterpret_cast<char*>(outBytes), byteCountToRead);
 
     if (memstream.eof()) png_error(png_ptr, "unexpected end of data");
@@ -215,7 +215,7 @@ void TerminateHandler() {
 void Usage() {
   fprintf(stderr,
       "Guetzli JPEG compressor. Usage: \n"
-      "guetzli [flags] input_filename output_filename\n"
+      "guetzli [flags] input_filename_1 input_filename_2 ...\n"
       "\n"
       "Flags:\n"
       "  --verbose    - Print a verbose trace of all attempts to standard output.\n"
@@ -263,64 +263,67 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (argc - opt_idx != 2) {
+  if (argc - opt_idx <= 1) {
     Usage();
   }
+  while (argc - opt_idx >= 1) {
+    std::string in_data = ReadFileOrDie(argv[opt_idx]);
+    std::string out_data;
 
-  std::string in_data = ReadFileOrDie(argv[opt_idx]);
-  std::string out_data;
+    guetzli::Params params;
+    params.butteraugli_target = static_cast<float>(
+						   guetzli::ButteraugliScoreForQuality(quality));
 
-  guetzli::Params params;
-  params.butteraugli_target = static_cast<float>(
-      guetzli::ButteraugliScoreForQuality(quality));
+    guetzli::ProcessStats stats;
 
-  guetzli::ProcessStats stats;
+    if (verbose) {
+      stats.debug_output_file = stderr;
+    }
 
-  if (verbose) {
-    stats.debug_output_file = stderr;
-  }
-
-  static const unsigned char kPNGMagicBytes[] = {
+    static const unsigned char kPNGMagicBytes[] = {
       0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n',
-  };
-  if (in_data.size() >= 8 &&
-      memcmp(in_data.data(), kPNGMagicBytes, sizeof(kPNGMagicBytes)) == 0) {
-    int xsize, ysize;
-    std::vector<uint8_t> rgb;
-    if (!ReadPNG(in_data, &xsize, &ysize, &rgb)) {
-      fprintf(stderr, "Error reading PNG data from input file\n");
-      return 1;
+    };
+    if (in_data.size() >= 8 &&
+	memcmp(in_data.data(), kPNGMagicBytes, sizeof(kPNGMagicBytes)) == 0) {
+      int xsize, ysize;
+      std::vector<uint8_t> rgb;
+      if (!ReadPNG(in_data, &xsize, &ysize, &rgb)) {
+	fprintf(stderr, "Error reading PNG data from input file\n");
+	return 1;
+      }
+      double pixels = static_cast<double>(xsize) * ysize;
+      if (memlimit_mb != -1
+	  && (pixels * kBytesPerPixel / (1 << 20) > memlimit_mb
+	      || memlimit_mb < kLowestMemusageMB)) {
+	fprintf(stderr, "Memory limit would be exceeded. Failing.\n");
+	return 1;
+      }
+      if (!guetzli::Process(params, &stats, rgb, xsize, ysize, &out_data)) {
+	fprintf(stderr, "Guetzli processing failed\n");
+	return 1;
+      }
+    } else {
+      guetzli::JPEGData jpg_header;
+      if (!guetzli::ReadJpeg(in_data, guetzli::JPEG_READ_HEADER, &jpg_header)) {
+	fprintf(stderr, "Error reading JPG data from input file\n");
+	return 1;
+      }
+      double pixels = static_cast<double>(jpg_header.width) * jpg_header.height;
+      if (memlimit_mb != -1
+	  && (pixels * kBytesPerPixel / (1 << 20) > memlimit_mb
+	      || memlimit_mb < kLowestMemusageMB)) {
+	fprintf(stderr, "Memory limit would be exceeded. Failing.\n");
+	return 1;
+      }
+      if (!guetzli::Process(params, &stats, in_data, &out_data)) {
+	fprintf(stderr, "Guetzli processing failed\n");
+	return 1;
+      }
     }
-    double pixels = static_cast<double>(xsize) * ysize;
-    if (memlimit_mb != -1
-        && (pixels * kBytesPerPixel / (1 << 20) > memlimit_mb
-            || memlimit_mb < kLowestMemusageMB)) {
-      fprintf(stderr, "Memory limit would be exceeded. Failing.\n");
-      return 1;
-    }
-    if (!guetzli::Process(params, &stats, rgb, xsize, ysize, &out_data)) {
-      fprintf(stderr, "Guetzli processing failed\n");
-      return 1;
-    }
-  } else {
-    guetzli::JPEGData jpg_header;
-    if (!guetzli::ReadJpeg(in_data, guetzli::JPEG_READ_HEADER, &jpg_header)) {
-      fprintf(stderr, "Error reading JPG data from input file\n");
-      return 1;
-    }
-    double pixels = static_cast<double>(jpg_header.width) * jpg_header.height;
-    if (memlimit_mb != -1
-        && (pixels * kBytesPerPixel / (1 << 20) > memlimit_mb
-            || memlimit_mb < kLowestMemusageMB)) {
-      fprintf(stderr, "Memory limit would be exceeded. Failing.\n");
-      return 1;
-    }
-    if (!guetzli::Process(params, &stats, in_data, &out_data)) {
-      fprintf(stderr, "Guetzli processing failed\n");
-      return 1;
-    }
-  }
 
-  WriteFileOrDie(argv[opt_idx + 1], out_data);
+    std::string filename(argv[opt_idx]);
+    WriteFileOrDie(filename.replace(filename.rfind("."),4,".compressed.jpg").c_str(), out_data);
+    opt_idx++;
+  }
   return 0;
 }
