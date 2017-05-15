@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (argc - opt_idx <= 1) {
+  if (argc - opt_idx < 1) {
     Usage();
   }
   while (argc - opt_idx >= 1) {
