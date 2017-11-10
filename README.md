@@ -9,62 +9,6 @@ sequential (nonprogressive) JPEGs due to faster decompression speeds they offer.
 
 [![Build Status](https://travis-ci.org/google/guetzli.svg?branch=master)](https://travis-ci.org/google/guetzli)
 
-# Building
-
-## On POSIX systems
-
-1.  Get a copy of the source code, either by cloning this repository, or by
-    downloading an
-    [archive](https://github.com/google/guetzli/archive/master.zip) and
-    unpacking it.
-2.  Install [libpng](http://www.libpng.org/pub/png/libpng.html).
-    If using your operating system
-    package manager, install development versions of the packages if the
-    distinction exists.
-    *   On Ubuntu, do `apt-get install libpng-dev`.
-    *   On Fedora, do `dnf install libpng-devel`. 
-    *   On Arch Linux, do `pacman -S libpng`.
-    *   On Alpine Linux, do `apk add libpng-dev`.
-3.  Run `make` and expect the binary to be created in `bin/Release/guetzli`.
-
-## On Windows
-
-1.  Get a copy of the source code, either by cloning this repository, or by
-    downloading an
-    [archive](https://github.com/google/guetzli/archive/master.zip) and
-    unpacking it.
-2.  Install [Visual Studio 2015](https://www.visualstudio.com) and
-    [vcpkg](https://github.com/Microsoft/vcpkg)
-3.  Install `libpng` using vcpkg: `.\vcpkg install libpng`.
-4.  Cause the installed packages to be available system-wide: `.\vcpkg integrate
-    install`. If you prefer not to do this, refer to [vcpkg's
-    documentation](https://github.com/Microsoft/vcpkg/blob/master/docs/EXAMPLES.md#example-1-2).
-5.  Open the Visual Studio project enclosed in the repository and build it.
-
-## On macOS
-
-To install using [Homebrew](https://brew.sh/):
-1. Install [Homebrew](https://brew.sh/)
-2. `brew install guetzli`
-
-To install using the repository:
-1.  Get a copy of the source code, either by cloning this repository, or by
-    downloading an
-    [archive](https://github.com/google/guetzli/archive/master.zip) and
-    unpacking it.
-2.  Install [Homebrew](https://brew.sh/) or [MacPorts](https://www.macports.org/)
-3.  Install `libpng`
-    *   Using [Homebrew](https://brew.sh/): `brew install libpng`.
-    *   Using [MacPorts](https://www.macports.org/): `port install libpng` (You may need to use `sudo`).
-4.  Run the following command to build the binary in `bin/Release/guetzli`.
-    *   If you installed using [Homebrew](https://brew.sh/) simply use `make`
-    *   If you installed using [MacPorts](https://www.macports.org/) use `CFLAGS='-I/opt/local/include' LDFLAGS='-L/opt/local/lib' make`
-
-## With Bazel
-
-There's also a [Bazel](https://bazel.build) build configuration provided. If you
-have Bazel installed, you can also compile Guetzli by running `bazel build -c opt //:guetzli`.
-
 # Using
 
 **Note:** Guetzli uses a large amount of memory. You should provide 300MB of
@@ -81,8 +25,8 @@ To try out Guetzli you need to [build](#building) or
 binary reads a PNG or JPEG image and creates an optimized JPEG image:
 
 ```bash
-guetzli [--quality Q] [--verbose] original.png output.jpg
-guetzli [--quality Q] [--verbose] original.jpg output.jpg
+guetzli [--quality Q] [--verbose] input_filename_1.jpg input_filename_2.jpg
+guetzli [--quality Q] [--verbose] *.jpg
 ```
 
 Note that Guetzli is designed to work on high quality images. You should always
