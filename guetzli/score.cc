@@ -20,24 +20,24 @@
 
 namespace guetzli {
 
-double ScoreJPEG(double butteraugli_distance, int size,
-                 double butteraugli_target) {
-  constexpr double kScale = 50;
-  constexpr double kMaxExponent = 10;
-  constexpr double kLargeSize = 1e30;
-  // TODO(user): The score should also depend on distance below target (and be
-  // smooth).
-  double diff = butteraugli_distance - butteraugli_target;
-  if (diff <= 0.0) {
-    return size;
-  } else {
-    double exponent = kScale * diff;
-    if (exponent > kMaxExponent) {
-      return kLargeSize * std::exp(kMaxExponent) * diff + size;
-    } else {
-      return std::exp(exponent) * size;
+    double ScoreJPEG(double butteraugli_distance, int size,
+                     double butteraugli_target) {
+        constexpr double kScale = 50;
+        constexpr double kMaxExponent = 10;
+        constexpr double kLargeSize = 1e30;
+        // TODO(user): The score should also depend on distance below target (and be
+        // smooth).
+        double diff = butteraugli_distance - butteraugli_target;
+        if (diff <= 0.0) {
+            return size;
+        } else {
+            double exponent = kScale * diff;
+            if (exponent > kMaxExponent) {
+                return kLargeSize * std::exp(kMaxExponent) * diff + size;
+            } else {
+                return std::exp(exponent) * size;
+            }
+        }
     }
-  }
-}
 
 }  // namespace guetzli

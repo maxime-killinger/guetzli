@@ -21,67 +21,67 @@
 
 namespace guetzli {
 
-namespace {
+    namespace {
 
 // kDCTMatrix[8*u+x] = 0.5*alpha(u)*cos((2*x+1)*u*M_PI/16),
 // where alpha(0) = 1/sqrt(2) and alpha(u) = 1 for u > 0.
-static const double kDCTMatrix[64] = {
-  0.3535533906,  0.3535533906,  0.3535533906,  0.3535533906,
-  0.3535533906,  0.3535533906,  0.3535533906,  0.3535533906,
-  0.4903926402,  0.4157348062,  0.2777851165,  0.0975451610,
- -0.0975451610, -0.2777851165, -0.4157348062, -0.4903926402,
-  0.4619397663,  0.1913417162, -0.1913417162, -0.4619397663,
- -0.4619397663, -0.1913417162,  0.1913417162,  0.4619397663,
-  0.4157348062, -0.0975451610, -0.4903926402, -0.2777851165,
-  0.2777851165,  0.4903926402,  0.0975451610, -0.4157348062,
-  0.3535533906, -0.3535533906, -0.3535533906,  0.3535533906,
-  0.3535533906, -0.3535533906, -0.3535533906,  0.3535533906,
-  0.2777851165, -0.4903926402,  0.0975451610,  0.4157348062,
- -0.4157348062, -0.0975451610,  0.4903926402, -0.2777851165,
-  0.1913417162, -0.4619397663,  0.4619397663, -0.1913417162,
- -0.1913417162,  0.4619397663, -0.4619397663,  0.1913417162,
-  0.0975451610, -0.2777851165,  0.4157348062, -0.4903926402,
-  0.4903926402, -0.4157348062,  0.2777851165, -0.0975451610,
-};
+        static const double kDCTMatrix[64] = {
+                0.3535533906, 0.3535533906, 0.3535533906, 0.3535533906,
+                0.3535533906, 0.3535533906, 0.3535533906, 0.3535533906,
+                0.4903926402, 0.4157348062, 0.2777851165, 0.0975451610,
+                -0.0975451610, -0.2777851165, -0.4157348062, -0.4903926402,
+                0.4619397663, 0.1913417162, -0.1913417162, -0.4619397663,
+                -0.4619397663, -0.1913417162, 0.1913417162, 0.4619397663,
+                0.4157348062, -0.0975451610, -0.4903926402, -0.2777851165,
+                0.2777851165, 0.4903926402, 0.0975451610, -0.4157348062,
+                0.3535533906, -0.3535533906, -0.3535533906, 0.3535533906,
+                0.3535533906, -0.3535533906, -0.3535533906, 0.3535533906,
+                0.2777851165, -0.4903926402, 0.0975451610, 0.4157348062,
+                -0.4157348062, -0.0975451610, 0.4903926402, -0.2777851165,
+                0.1913417162, -0.4619397663, 0.4619397663, -0.1913417162,
+                -0.1913417162, 0.4619397663, -0.4619397663, 0.1913417162,
+                0.0975451610, -0.2777851165, 0.4157348062, -0.4903926402,
+                0.4903926402, -0.4157348062, 0.2777851165, -0.0975451610,
+        };
 
-void DCT1d(const double* in, int stride, double* out) {
-  for (int x = 0; x < 8; ++x) {
-    out[x * stride] = 0.0;
-    for (int u = 0; u < 8; ++u) {
-      out[x * stride] += kDCTMatrix[8 * x + u] * in[u * stride];
+        void DCT1d(const double *in, int stride, double *out) {
+            for (int x = 0; x < 8; ++x) {
+                out[x * stride] = 0.0;
+                for (int u = 0; u < 8; ++u) {
+                    out[x * stride] += kDCTMatrix[8 * x + u] * in[u * stride];
+                }
+            }
+        }
+
+        void IDCT1d(const double *in, int stride, double *out) {
+            for (int x = 0; x < 8; ++x) {
+                out[x * stride] = 0.0;
+                for (int u = 0; u < 8; ++u) {
+                    out[x * stride] += kDCTMatrix[8 * u + x] * in[u * stride];
+                }
+            }
+        }
+
+        typedef void (*Transform1d)(const double *in, int stride, double *out);
+
+        void TransformBlock(double block[64], Transform1d f) {
+            double tmp[64];
+            for (int x = 0; x < 8; ++x) {
+                f(&block[x], 8, &tmp[x]);
+            }
+            for (int y = 0; y < 8; ++y) {
+                f(&tmp[8 * y], 1, &block[8 * y]);
+            }
+        }
+
+    }  // namespace
+
+    void ComputeBlockDCTDouble(double block[64]) {
+        TransformBlock(block, DCT1d);
     }
-  }
-}
 
-void IDCT1d(const double* in, int stride, double* out) {
-  for (int x = 0; x < 8; ++x) {
-    out[x * stride] = 0.0;
-    for (int u = 0; u < 8; ++u) {
-      out[x * stride] += kDCTMatrix[8 * u + x] * in[u * stride];
+    void ComputeBlockIDCTDouble(double block[64]) {
+        TransformBlock(block, IDCT1d);
     }
-  }
-}
-
-typedef void (*Transform1d)(const double* in, int stride, double* out);
-
-void TransformBlock(double block[64], Transform1d f) {
-  double tmp[64];
-  for (int x = 0; x < 8; ++x) {
-    f(&block[x], 8, &tmp[x]);
-  }
-  for (int y = 0; y < 8; ++y) {
-    f(&tmp[8 * y], 1, &block[8 * y]);
-  }
-}
-
-}  // namespace
-
-void ComputeBlockDCTDouble(double block[64]) {
-  TransformBlock(block, DCT1d);
-}
-
-void ComputeBlockIDCTDouble(double block[64]) {
-  TransformBlock(block, IDCT1d);
-}
 
 }  // namespace guetzli

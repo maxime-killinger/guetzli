@@ -26,18 +26,19 @@
 
 namespace guetzli {
 
-static const char* const  kNumItersCnt = "number of iterations";
-static const char* const kNumItersUpCnt = "number of iterations up";
-static const char* const kNumItersDownCnt = "number of iterations down";
+    static const char *const kNumItersCnt = "number of iterations";
+    static const char *const kNumItersUpCnt = "number of iterations up";
+    static const char *const kNumItersDownCnt = "number of iterations down";
 
-struct ProcessStats {
-  ProcessStats() {}
-  std::map<std::string, int> counters;
-  std::string* debug_output = nullptr;
-  FILE* debug_output_file = nullptr;
+    struct ProcessStats {
+        ProcessStats() {}
 
-  std::string filename;
-};
+        std::map<std::string, int> counters;
+        std::string *debug_output = nullptr;
+        FILE *debug_output_file = nullptr;
+
+        std::string filename;
+    };
 
 }  // namespace guetzli
 

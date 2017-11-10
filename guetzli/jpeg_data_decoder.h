@@ -30,11 +30,11 @@ namespace guetzli {
 // output image will be generated.
 // Only YUV420 and YUV444 sampling factors are supported.
 // Vector will be empty if a decoding error occurred.
-std::vector<uint8_t> DecodeJpegToRGB(const JPEGData& jpg);
+    std::vector <uint8_t> DecodeJpegToRGB(const JPEGData &jpg);
 
 // Mimic libjpeg's heuristics to guess jpeg color space.
 // Requires that the jpg has 3 components.
-bool HasYCbCrColorSpace(const JPEGData& jpg);
+    bool HasYCbCrColorSpace(const JPEGData &jpg);
 
 }  // namespace guetzli
 

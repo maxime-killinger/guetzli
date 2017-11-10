@@ -27,57 +27,60 @@
 
 namespace guetzli {
 
-constexpr int kButteraugliStep = 3;
+    constexpr int kButteraugliStep = 3;
 
-class ButteraugliComparator : public Comparator {
- public:
-  ButteraugliComparator(const int width, const int height,
-                        const std::vector<uint8_t>* rgb,
-                        const float target_distance, ProcessStats* stats);
+    class ButteraugliComparator : public Comparator {
+    public:
+        ButteraugliComparator(const int width, const int height,
+                              const std::vector <uint8_t> *rgb,
+                              const float target_distance, ProcessStats *stats);
 
-  void Compare(const OutputImage& img) override;
+        void Compare(const OutputImage &img) override;
 
-  void StartBlockComparisons() override;
-  void FinishBlockComparisons() override;
+        void StartBlockComparisons() override;
 
-  void SwitchBlock(int block_x, int block_y,
-                   int factor_x, int factor_y) override;
+        void FinishBlockComparisons() override;
 
-  double CompareBlock(const OutputImage& img,
-                      int off_x, int off_y) const override;
+        void SwitchBlock(int block_x, int block_y,
+                         int factor_x, int factor_y) override;
 
-  double ScoreOutputSize(int size) const override;
+        double CompareBlock(const OutputImage &img,
+                            int off_x, int off_y) const override;
 
-  bool DistanceOK(double target_mul) const override {
-    return distance_ <= target_mul * target_distance_;
-  }
+        double ScoreOutputSize(int size) const override;
 
-  const std::vector<float> distmap() const override { return distmap_; }
-  float distmap_aggregate() const override { return distance_; }
+        bool DistanceOK(double target_mul) const override {
+            return distance_ <= target_mul * target_distance_;
+        }
 
-  float BlockErrorLimit() const override;
+        const std::vector<float> distmap() const override { return distmap_; }
 
-  void ComputeBlockErrorAdjustmentWeights(
-      int direction, int max_block_dist, double target_mul, int factor_x,
-      int factor_y, const std::vector<float>& distmap,
-      std::vector<float>* block_weight) override;
+        float distmap_aggregate() const override { return distance_; }
 
- private:
-  const int width_;
-  const int height_;
-  const float target_distance_;
-  const std::vector<uint8_t>& rgb_orig_;
-  int block_x_;
-  int block_y_;
-  int factor_x_;
-  int factor_y_;
-  std::vector<::butteraugli::ImageF> mask_xyz_;
-  std::vector<std::vector<std::vector<float>>> per_block_pregamma_;
-  ::butteraugli::ButteraugliComparator comparator_;
-  float distance_;
-  std::vector<float> distmap_;
-  ProcessStats* stats_;
-};
+        float BlockErrorLimit() const override;
+
+        void ComputeBlockErrorAdjustmentWeights(
+                int direction, int max_block_dist, double target_mul, int factor_x,
+                int factor_y, const std::vector<float> &distmap,
+                std::vector<float> *block_weight) override;
+
+    private:
+        const int width_;
+        const int height_;
+        const float target_distance_;
+        const std::vector <uint8_t> &rgb_orig_;
+        int block_x_;
+        int block_y_;
+        int factor_x_;
+        int factor_y_;
+        std::vector<::butteraugli::ImageF> mask_xyz_;
+        std::vector <std::vector<std::vector < float>>>
+        per_block_pregamma_;
+        ::butteraugli::ButteraugliComparator comparator_;
+        float distance_;
+        std::vector<float> distmap_;
+        ProcessStats *stats_;
+    };
 
 }  // namespace guetzli
 

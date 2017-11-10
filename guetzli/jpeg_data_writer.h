@@ -29,76 +29,87 @@ namespace guetzli {
 
 // Function pointer type used to write len bytes into buf. Returns the
 // number of bytes written or -1 on error.
-typedef int (*JPEGOutputHook)(void* data, const uint8_t* buf, size_t len);
+    typedef int (*JPEGOutputHook)(void *data, const uint8_t *buf, size_t len);
 
 // Output callback function with associated data.
-struct JPEGOutput {
-  JPEGOutput(JPEGOutputHook cb, void* data) : cb(cb), data(data) {}
-  bool Write(const uint8_t* buf, size_t len) const {
-    return (len == 0) || (cb(data, buf, len) == len);
-  }
- private:
-  JPEGOutputHook cb;
-  void* data;
-};
+    struct JPEGOutput {
+        JPEGOutput(JPEGOutputHook cb, void *data) : cb(cb), data(data) {}
 
-bool WriteJpeg(const JPEGData& jpg, bool strip_metadata, JPEGOutput out);
+        bool Write(const uint8_t *buf, size_t len) const {
+            return (len == 0) || (cb(data, buf, len) == len);
+        }
 
-struct HuffmanCodeTable {
-  uint8_t depth[256];
-  int code[256];
-};
+    private:
+        JPEGOutputHook cb;
+        void *data;
+    };
 
-void BuildSequentialHuffmanCodes(
-    const JPEGData& jpg, std::vector<HuffmanCodeTable>* dc_huffman_code_tables,
-    std::vector<HuffmanCodeTable>* ac_huffman_code_tables);
+    bool WriteJpeg(const JPEGData &jpg, bool strip_metadata, JPEGOutput out);
 
-struct JpegHistogram {
-  static const int kSize = kJpegHuffmanAlphabetSize + 1;
+    struct HuffmanCodeTable {
+        uint8_t depth[256];
+        int code[256];
+    };
 
-  JpegHistogram() { Clear(); }
-  void Clear() {
-    memset(counts, 0, sizeof(counts));
-    counts[kSize - 1] = 1;
-  }
-  void Add(int symbol) {
-    counts[symbol] += 2;
-  }
-  void Add(int symbol, int weight) {
-    counts[symbol] += 2 * weight;
-  }
-  void AddHistogram(const JpegHistogram& other) {
-    for (int i = 0; i + 1 < kSize; ++i) {
-      counts[i] += other.counts[i];
-    }
-    counts[kSize - 1] = 1;
-  }
-  int NumSymbols() const {
-    int n = 0;
-    for (int i = 0; i + 1 < kSize; ++i) {
-      n += (counts[i] > 0 ? 1 : 0);
-    }
-    return n;
-  }
+    void BuildSequentialHuffmanCodes(
+            const JPEGData &jpg, std::vector <HuffmanCodeTable> *dc_huffman_code_tables,
+            std::vector <HuffmanCodeTable> *ac_huffman_code_tables);
 
-  uint32_t counts[kSize];
-};
+    struct JpegHistogram {
+        static const int kSize = kJpegHuffmanAlphabetSize + 1;
 
-void BuildDCHistograms(const JPEGData& jpg, JpegHistogram* histo);
-void BuildACHistograms(const JPEGData& jpg, JpegHistogram* histo);
-size_t JpegHeaderSize(const JPEGData& jpg, bool strip_metadata);
-size_t EstimateJpegDataSize(const int num_components,
-                            const std::vector<JpegHistogram>& histograms);
+        JpegHistogram() { Clear(); }
 
-size_t HistogramEntropyCost(const JpegHistogram& histo,
-                            const uint8_t depths[256]);
-size_t HistogramHeaderCost(const JpegHistogram& histo);
+        void Clear() {
+            memset(counts, 0, sizeof(counts));
+            counts[kSize - 1] = 1;
+        }
 
-void UpdateACHistogramForDCTBlock(const coeff_t* coeffs,
-                                  JpegHistogram* ac_histogram);
+        void Add(int symbol) {
+            counts[symbol] += 2;
+        }
 
-size_t ClusterHistograms(JpegHistogram* histo, size_t* num, int* histo_indexes,
-                         uint8_t* depths);
+        void Add(int symbol, int weight) {
+            counts[symbol] += 2 * weight;
+        }
+
+        void AddHistogram(const JpegHistogram &other) {
+            for (int i = 0; i + 1 < kSize; ++i) {
+                counts[i] += other.counts[i];
+            }
+            counts[kSize - 1] = 1;
+        }
+
+        int NumSymbols() const {
+            int n = 0;
+            for (int i = 0; i + 1 < kSize; ++i) {
+                n += (counts[i] > 0 ? 1 : 0);
+            }
+            return n;
+        }
+
+        uint32_t counts[kSize];
+    };
+
+    void BuildDCHistograms(const JPEGData &jpg, JpegHistogram *histo);
+
+    void BuildACHistograms(const JPEGData &jpg, JpegHistogram *histo);
+
+    size_t JpegHeaderSize(const JPEGData &jpg, bool strip_metadata);
+
+    size_t EstimateJpegDataSize(const int num_components,
+                                const std::vector <JpegHistogram> &histograms);
+
+    size_t HistogramEntropyCost(const JpegHistogram &histo,
+                                const uint8_t depths[256]);
+
+    size_t HistogramHeaderCost(const JpegHistogram &histo);
+
+    void UpdateACHistogramForDCTBlock(const coeff_t *coeffs,
+                                      JpegHistogram *ac_histogram);
+
+    size_t ClusterHistograms(JpegHistogram *histo, size_t *num, int *histo_indexes,
+                             uint8_t *depths);
 
 }  // namespace guetzli
 

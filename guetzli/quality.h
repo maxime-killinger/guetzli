@@ -19,7 +19,7 @@
 
 namespace guetzli {
 
-double ButteraugliScoreForQuality(double quality);
+    double ButteraugliScoreForQuality(double quality);
 
 }  // namespace guetzli
 
