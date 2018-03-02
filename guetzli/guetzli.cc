@@ -273,6 +273,8 @@ int main(int argc, char **argv) {
         std::string out_data;
 
         guetzli::Params params;
+
+	params.clear_metadata = false;
         params.butteraugli_target = static_cast<float>(
                 guetzli::ButteraugliScoreForQuality(quality));
 
