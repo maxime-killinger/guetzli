@@ -219,12 +219,13 @@ namespace {
                         "guetzli [flags] input_filename_1 input_filename_2 ...\n"
                         "\n"
                         "Flags:\n"
-                        "  --verbose    - Print a verbose trace of all attempts to standard output.\n"
-                        "  --quality Q  - Visual quality to aim for, expressed as a JPEG quality value.\n"
-                        "                 Default value is %d.\n"
-                        "  --memlimit M - Memory limit in MB. Guetzli will fail if unable to stay under\n"
-                        "                 the limit. Default limit is %d MB.\n"
-                        "  --nomemlimit - Do not limit memory usage.\n", kDefaultJPEGQuality, kDefaultMemlimitMB);
+                        "  --verbose        - Print a verbose trace of all attempts to standard output.\n"
+                        "  --keepmetadata   - Keep the metadata of the file.\n"
+                        "  --quality Q      - Visual quality to aim for, expressed as a JPEG quality value.\n"
+                        "                     Default value is %d.\n"
+                        "  --memlimit M     - Memory limit in MB. Guetzli will fail if unable to stay under\n"
+                        "                     the limit. Default limit is %d MB.\n"
+                        "  --nomemlimit     - Do not limit memory usage.\n", kDefaultJPEGQuality, kDefaultMemlimitMB);
         exit(1);
     }
 
@@ -236,6 +237,7 @@ int main(int argc, char **argv) {
     int verbose = 0;
     int quality = kDefaultJPEGQuality;
     int memlimit_mb = kDefaultMemlimitMB;
+    bool keepmetadata = false;
 
     int opt_idx = 1;
     for (; opt_idx < argc; opt_idx++) {
@@ -243,6 +245,8 @@ int main(int argc, char **argv) {
             break;
         if (!strcmp(argv[opt_idx], "--verbose")) {
             verbose = 1;
+        } else if (!strcmp(argv[opt_idx], "--keepmetadata")) {
+            keepmetadata = true;
         } else if (!strcmp(argv[opt_idx], "--quality")) {
             opt_idx++;
             if (opt_idx >= argc)
@@ -274,7 +278,7 @@ int main(int argc, char **argv) {
 
         guetzli::Params params;
 
-	params.clear_metadata = false;
+        params.clear_metadata = keepmetadata;
         params.butteraugli_target = static_cast<float>(
                 guetzli::ButteraugliScoreForQuality(quality));
 

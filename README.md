@@ -38,7 +38,7 @@ image](https://github.com/google/guetzli/releases/download/v0/bees.png).
 
 You can pass a `--quality Q` parameter to set quality in units equivalent to
 libjpeg quality. You can also pass a `--verbose` flag to see a trace of encoding
-attempts made.
+attempts made or a `--keepmetadata` to keep the metadata inside your image.
 
 Please note that JPEG images do not support alpha channel (transparency). If the
 input is a PNG with an alpha channel, it will be overlaid on black background
