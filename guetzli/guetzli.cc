@@ -40,6 +40,8 @@ namespace {
 
     constexpr int kDefaultMemlimitMB = 6000; // in MB
 
+    constexpr char *kDefaultFilenameSuffix = (char *const)"compressed";
+
     inline uint8_t BlendOnBlack(const uint8_t val, const uint8_t alpha) {
         return (static_cast<int>(val) * static_cast<int>(alpha) + 128) / 255;
     }
@@ -220,12 +222,16 @@ namespace {
                         "\n"
                         "Flags:\n"
                         "  --verbose        - Print a verbose trace of all attempts to standard output.\n"
-                        "  --keepmetadata   - Keep the metadata of the file.\n"
+                        "  --keepmetadata   - Keep the files metadata.\n"
                         "  --quality Q      - Visual quality to aim for, expressed as a JPEG quality value.\n"
                         "                     Default value is %d.\n"
                         "  --memlimit M     - Memory limit in MB. Guetzli will fail if unable to stay under\n"
                         "                     the limit. Default limit is %d MB.\n"
-                        "  --nomemlimit     - Do not limit memory usage.\n", kDefaultJPEGQuality, kDefaultMemlimitMB);
+                        "  --nomemlimit     - Do not limit memory usage.\n"
+                        "  --suffix VALUE   - Suffix of the new files. Default suffix is '%s'. It\n"
+                        "                     will be add to the filename like 'filename.%s.jpg'.\n"
+                        "  --overwrite      - Overwrite the existing files.\n", 
+                        kDefaultJPEGQuality, kDefaultMemlimitMB, kDefaultFilenameSuffix, kDefaultFilenameSuffix);
         exit(1);
     }
 
@@ -238,6 +244,8 @@ int main(int argc, char **argv) {
     int quality = kDefaultJPEGQuality;
     int memlimit_mb = kDefaultMemlimitMB;
     bool keepmetadata = false;
+    bool overwrite = false;
+    char *suffix = kDefaultFilenameSuffix;
 
     int opt_idx = 1;
     for (; opt_idx < argc; opt_idx++) {
@@ -259,6 +267,13 @@ int main(int argc, char **argv) {
             memlimit_mb = atoi(argv[opt_idx]);
         } else if (!strcmp(argv[opt_idx], "--nomemlimit")) {
             memlimit_mb = -1;
+        } else if (!strcmp(argv[opt_idx], "--suffix")) {
+            opt_idx++;
+            if (opt_idx >= argc)
+                Usage();
+            suffix = argv[opt_idx];
+        } else if (!strcmp(argv[opt_idx], "--overwrite")) {
+            overwrite = true;
         } else if (!strcmp(argv[opt_idx], "--")) {
             opt_idx++;
             break;
@@ -330,7 +345,12 @@ int main(int argc, char **argv) {
         }
 
         std::string filename(argv[opt_idx]);
-        WriteFileOrDie(filename.replace(filename.rfind("."), 4, ".compressed.jpg").c_str(), out_data);
+        if (!overwrite || strlen(suffix) != 0) {
+            filename = filename.replace(filename.rfind("."), 4, ".") + std::string(suffix) + std::string(".jpg");
+            WriteFileOrDie(filename.c_str(), out_data);
+        } else {
+            WriteFileOrDie(filename.c_str(), out_data);
+        }
         opt_idx++;
     }
     return 0;

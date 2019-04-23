@@ -38,7 +38,11 @@ image](https://github.com/google/guetzli/releases/download/v0/bees.png).
 
 You can pass a `--quality Q` parameter to set quality in units equivalent to
 libjpeg quality. You can also pass a `--verbose` flag to see a trace of encoding
-attempts made or a `--keepmetadata` to keep the metadata inside your image.
+attempts made or a `--keepmetadata` to keep the metadata inside your image. The
+`--suffix VALUE` will add a suffix to the filename. By default, the suffix is
+'compressed'. For example, for the file `input.jpg`, the output file will be named
+`input.compressed.jpg`. To overwrite the existing file, use the `--overwrite`
+parameter.
 
 Please note that JPEG images do not support alpha channel (transparency). If the
 input is a PNG with an alpha channel, it will be overlaid on black background
