@@ -7,6 +7,7 @@ case "$1" in
 		;;
 	    "osx")
 		brew update
+		brew cask install homebrew/cask-versions/java8
 		brew install netpbm
 		;;
 	esac
